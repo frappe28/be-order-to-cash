@@ -52,7 +52,7 @@ resource "aws_iam_role_policy" "zuora_webhook_events" {
 resource "aws_lambda_function" "zuora_webhook" {
   function_name    = local.zuora_webhook_lambda_name
   handler          = "zuora_webhook.handler"
-  runtime          = "python3.12"
+  runtime          = "python3.11"
   role             = aws_iam_role.zuora_webhook.arn
   filename         = data.archive_file.zuora_webhook.output_path
   source_code_hash = data.archive_file.zuora_webhook.output_base64sha256

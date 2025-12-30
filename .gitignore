@@ -44,3 +44,7 @@ notes.
 # node modules
 node_modules/
 dist/
+
+# local execution files
+infra/localstack/data/
+infra/localstack/.localstack/

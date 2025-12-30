@@ -52,7 +52,7 @@ resource "aws_iam_role_policy" "zuora_validate_price_events" {
 resource "aws_lambda_function" "zuora_validate_price" {
   function_name    = local.zuora_validate_lambda_name
   handler          = "validate_zuora_price.handler"
-  runtime          = "python3.12"
+  runtime          = "python3.11"
   role             = aws_iam_role.zuora_validate_price.arn
   filename         = data.archive_file.zuora_validate_price.output_path
   source_code_hash = data.archive_file.zuora_validate_price.output_base64sha256
