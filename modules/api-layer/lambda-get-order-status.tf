@@ -26,18 +26,18 @@ data "aws_iam_policy_document" "lambda_logs_get_order_status" {
 }
 
 resource "aws_iam_role" "get_order_status" {
-  name               = "${var.get_order_status_lambda_name}-role"
+  name               = "${var.project}-${var.env}-api-layer-get-order-status-role"
   assume_role_policy = data.aws_iam_policy_document.lambda_assume_role_get_order_status.json
 }
 
 resource "aws_iam_role_policy" "get_order_status_logs" {
-  name   = "${var.get_order_status_lambda_name}-logs"
+  name   = "${var.project}-${var.env}-api-layer-get-order-status-logs"
   role   = aws_iam_role.get_order_status.id
   policy = data.aws_iam_policy_document.lambda_logs_get_order_status.json
 }
 
 resource "aws_lambda_function" "get_order_status" {
-  function_name    = var.get_order_status_lambda_name
+  function_name    = var.get_order_status_name
   handler          = "get_order_status.handler"
   runtime          = "python3.12"
   role             = aws_iam_role.get_order_status.arn

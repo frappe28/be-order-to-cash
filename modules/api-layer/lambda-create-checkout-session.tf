@@ -26,18 +26,18 @@ data "aws_iam_policy_document" "lambda_logs_create_checkout_session" {
 }
 
 resource "aws_iam_role" "create_checkout_session" {
-  name               = "${var.create_checkout_session_lambda_name}-role"
+  name               = "${var.project}-${var.env}-api-layer-create-checkout-session-role"
   assume_role_policy = data.aws_iam_policy_document.lambda_assume_role_create_checkout_session.json
 }
 
 resource "aws_iam_role_policy" "create_checkout_session_logs" {
-  name   = "${var.create_checkout_session_lambda_name}-logs"
+  name   = "${var.project}-${var.env}-api-layer-create-checkout-session-logs"
   role   = aws_iam_role.create_checkout_session.id
   policy = data.aws_iam_policy_document.lambda_logs_create_checkout_session.json
 }
 
 resource "aws_lambda_function" "create_checkout_session" {
-  function_name    = var.create_checkout_session_lambda_name
+  function_name    = var.create_checkout_session_name
   handler          = "create_checkout_session.handler"
   runtime          = "python3.12"
   role             = aws_iam_role.create_checkout_session.arn

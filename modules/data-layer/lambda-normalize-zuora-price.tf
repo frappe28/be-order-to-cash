@@ -35,24 +35,24 @@ data "aws_iam_policy_document" "lambda_dynamodb_normalize" {
 }
 
 resource "aws_iam_role" "normalize_zuora_price" {
-  name               = "${local.normalize_lambda_name}-role"
+  name               = "${var.project}-${var.env}-data-layer-normalize-zuora-price-role"
   assume_role_policy = data.aws_iam_policy_document.lambda_assume_role_normalize.json
 }
 
 resource "aws_iam_role_policy" "normalize_zuora_price_logs" {
-  name   = "${local.normalize_lambda_name}-logs"
+  name   = "${var.project}-${var.env}-data-layer-normalize-zuora-price-logs"
   role   = aws_iam_role.normalize_zuora_price.id
   policy = data.aws_iam_policy_document.lambda_logs_normalize.json
 }
 
 resource "aws_iam_role_policy" "normalize_zuora_price_dynamodb" {
-  name   = "${local.normalize_lambda_name}-dynamodb"
+  name   = "${var.project}-${var.env}-data-layer-normalize-zuora-price-dynamodb"
   role   = aws_iam_role.normalize_zuora_price.id
   policy = data.aws_iam_policy_document.lambda_dynamodb_normalize.json
 }
 
 resource "aws_lambda_function" "normalize_zuora_price" {
-  function_name    = local.normalize_lambda_name
+  function_name    = var.normalize_zuora_price_function_name
   handler          = "normalize_zuora_price.handler"
   runtime          = "python3.11"
   role             = aws_iam_role.normalize_zuora_price.arn

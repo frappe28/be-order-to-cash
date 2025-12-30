@@ -21,5 +21,9 @@ variable "account_id" {
 variable "price_table_name" {
   type        = string
   description = "DynamoDB price table name suffix."
-  default     = "price"
+}
+
+variable "normalize_zuora_price_function_name" {
+  type        = string
+  description = "Lambda function name for normalizing Zuora price data."
 }

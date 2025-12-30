@@ -1,5 +1,5 @@
 resource "aws_cloudwatch_event_rule" "zuora_price_validated" {
-  name           = "${var.project}-${var.env}-zuora-price-validated"
+  name           = "${var.project}-${var.env}-data-layer-zuora-price-validated"
 
   event_pattern = jsonencode({
     source      = ["zuora.validation"]

@@ -26,18 +26,18 @@ data "aws_iam_policy_document" "lambda_logs_confirm_checkout" {
 }
 
 resource "aws_iam_role" "confirm_checkout" {
-  name               = "${var.confirm_checkout_lambda_name}-role"
+  name               = "${var.project}-${var.env}-api-layer-confirm-checkout-role"
   assume_role_policy = data.aws_iam_policy_document.lambda_assume_role_confirm_checkout.json
 }
 
 resource "aws_iam_role_policy" "confirm_checkout_logs" {
-  name   = "${var.confirm_checkout_lambda_name}-logs"
+  name   = "${var.project}-${var.env}-api-layer-confirm-checkout-logs"
   role   = aws_iam_role.confirm_checkout.id
   policy = data.aws_iam_policy_document.lambda_logs_confirm_checkout.json
 }
 
 resource "aws_lambda_function" "confirm_checkout" {
-  function_name    = var.confirm_checkout_lambda_name
+  function_name    = var.confirm_checkout_name
   handler          = "confirm_checkout.handler"
   runtime          = "python3.12"
   role             = aws_iam_role.confirm_checkout.arn

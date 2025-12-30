@@ -33,24 +33,24 @@ data "aws_iam_policy_document" "lambda_events_zuora_validate" {
 }
 
 resource "aws_iam_role" "zuora_validate_price" {
-  name               = "${local.zuora_validate_lambda_name}-role"
+  name               = var.validate_zuora_price_name
   assume_role_policy = data.aws_iam_policy_document.lambda_assume_role_zuora_validate.json
 }
 
 resource "aws_iam_role_policy" "zuora_validate_price_logs" {
-  name   = "${local.zuora_validate_lambda_name}-logs"
+  name   = var.validate_zuora_price_name
   role   = aws_iam_role.zuora_validate_price.id
   policy = data.aws_iam_policy_document.lambda_logs_zuora_validate.json
 }
 
 resource "aws_iam_role_policy" "zuora_validate_price_events" {
-  name   = "${local.zuora_validate_lambda_name}-events"
+  name   = var.validate_zuora_price_name
   role   = aws_iam_role.zuora_validate_price.id
   policy = data.aws_iam_policy_document.lambda_events_zuora_validate.json
 }
 
 resource "aws_lambda_function" "zuora_validate_price" {
-  function_name    = local.zuora_validate_lambda_name
+  function_name    = var.validate_zuora_price_name
   handler          = "validate_zuora_price.handler"
   runtime          = "python3.11"
   role             = aws_iam_role.zuora_validate_price.arn

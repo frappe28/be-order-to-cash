@@ -18,11 +18,21 @@ locals {
 
   global = local.global_vars.locals
   stage  = local.stage_vars.locals
+
+  module = "ingestion"
 }
 
 inputs = {
-  project    = local.global.project
-  region     = local.global.region
-  env        = local.stage.env
-  account_id = "000000000000"
+  project                       = local.global.project
+  region                        = local.global.region
+  env                           = local.stage.env
+
+  account_id  = "000000000000"
+  
+  zuora_webhook_name        = "${local.stage.resource_name_prefix_template}-${local.module}-zuora_webhook"
+  validate_zuora_price_name = "${local.stage.resource_name_prefix_template}-${local.module}-validate_zuora"
+  ingestion_rest_api_name   = "${local.stage.resource_name_prefix_template}-${local.module}-webhook_api"
+  ingestion_dlq_name        = "${local.stage.resource_name_prefix_template}-${local.module}-errors_dlq"
+  zuora_webhook_event_rule_name = "${local.stage.resource_name_prefix_template}-${local.module}-zuora_webhook_rule"
+
 }

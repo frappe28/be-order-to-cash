@@ -18,14 +18,20 @@ locals {
 
   global = local.global_vars.locals
   stage  = local.stage_vars.locals
+
+  module = "data_layer"
 }
 
 inputs = {
-  project     = local.global.project
-  region      = local.global.region
-  env         = local.stage.env
-  account_id = "000000000000"
+  project                       = local.global.project
+  region                        = local.global.region
+  env                           = local.stage.env
+  resource_name_prefix_template = local.stage.resource_name_prefix_template
   
-  price_table_name = "price"
+  account_id  = "000000000000"
+  
+
+  price_table_name                    = "${local.stage.resource_name_prefix_template}-${local.module}-price"
+  normalize_zuora_price_function_name = "${local.stage.resource_name_prefix_template}-${local.module}-normalize_zuora_price"
 
 }

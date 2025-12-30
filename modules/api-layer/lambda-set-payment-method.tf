@@ -26,18 +26,18 @@ data "aws_iam_policy_document" "lambda_logs_set_payment_method" {
 }
 
 resource "aws_iam_role" "set_payment_method" {
-  name               = "${var.set_payment_method_lambda_name}-role"
+  name               = "${var.project}-${var.env}-api-layer-set-payment-method-role"
   assume_role_policy = data.aws_iam_policy_document.lambda_assume_role_set_payment_method.json
 }
 
 resource "aws_iam_role_policy" "set_payment_method_logs" {
-  name   = "${var.set_payment_method_lambda_name}-logs"
+  name   = "${var.project}-${var.env}-api-layer-set-payment-method-logs"
   role   = aws_iam_role.set_payment_method.id
   policy = data.aws_iam_policy_document.lambda_logs_set_payment_method.json
 }
 
 resource "aws_lambda_function" "set_payment_method" {
-  function_name    = var.set_payment_method_lambda_name
+  function_name    = var.set_payment_method_name
   handler          = "set_payment_method.handler"
   runtime          = "python3.12"
   role             = aws_iam_role.set_payment_method.arn

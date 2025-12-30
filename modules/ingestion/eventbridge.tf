@@ -1,5 +1,5 @@
 resource "aws_sqs_queue" "ingestion_dlq" {
-  name = local.ingestion_dlq_name
+  name = var.ingestion_dlq_name
 }
 
 data "aws_iam_policy_document" "ingestion_dlq" {
@@ -24,7 +24,7 @@ resource "aws_sqs_queue_policy" "ingestion_dlq" {
 }
 
 resource "aws_cloudwatch_event_rule" "zuora_webhook_received" {
-  name           = "${var.project}-${var.env}-zuora-webhook-received"
+  name           = var.zuora_webhook_event_rule_name
 
   event_pattern = jsonencode({
     source      = ["zuora.webhook"]

@@ -1,5 +1,5 @@
 resource "aws_api_gateway_rest_api" "ingestion_rest_api" {
-  name = local.ingestion_http_api_name
+  name = var.ingestion_rest_api_name
 
   tags = {
     Project     = var.project
@@ -37,6 +37,18 @@ resource "aws_api_gateway_integration" "zuora_webhook" {
 
 resource "aws_api_gateway_deployment" "ingestion" {
   rest_api_id = aws_api_gateway_rest_api.ingestion_rest_api.id
+  triggers = {
+    redeployment = sha1(jsonencode([
+      aws_api_gateway_resource.webhooks.id,
+      aws_api_gateway_resource.zuora.id,
+      aws_api_gateway_method.zuora_webhook_post.id,
+      aws_api_gateway_integration.zuora_webhook.id,
+    ]))
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 
   depends_on = [
     aws_api_gateway_integration.zuora_webhook,
@@ -46,7 +58,7 @@ resource "aws_api_gateway_deployment" "ingestion" {
 resource "aws_api_gateway_stage" "ingestion_default" {
   rest_api_id   = aws_api_gateway_rest_api.ingestion_rest_api.id
   deployment_id = aws_api_gateway_deployment.ingestion.id
-  stage_name    = var.env
+  stage_name    = "${var.env}"
 }
 
 resource "aws_lambda_permission" "zuora_webhook_api_gateway" {

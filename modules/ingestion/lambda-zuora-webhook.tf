@@ -33,24 +33,24 @@ data "aws_iam_policy_document" "lambda_events_zuora_webhook" {
 }
 
 resource "aws_iam_role" "zuora_webhook" {
-  name               = "${local.zuora_webhook_lambda_name}-role"
+  name               = var.zuora_webhook_name
   assume_role_policy = data.aws_iam_policy_document.lambda_assume_role_zuora_webhook.json
 }
 
 resource "aws_iam_role_policy" "zuora_webhook_logs" {
-  name   = "${local.zuora_webhook_lambda_name}-logs"
+  name   = var.zuora_webhook_name
   role   = aws_iam_role.zuora_webhook.id
   policy = data.aws_iam_policy_document.lambda_logs_zuora_webhook.json
 }
 
 resource "aws_iam_role_policy" "zuora_webhook_events" {
-  name   = "${local.zuora_webhook_lambda_name}-events"
+  name   = var.zuora_webhook_name
   role   = aws_iam_role.zuora_webhook.id
   policy = data.aws_iam_policy_document.lambda_events_zuora_webhook.json
 }
 
 resource "aws_lambda_function" "zuora_webhook" {
-  function_name    = local.zuora_webhook_lambda_name
+  function_name    = var.zuora_webhook_name
   handler          = "zuora_webhook.handler"
   runtime          = "python3.11"
   role             = aws_iam_role.zuora_webhook.arn

@@ -73,7 +73,7 @@ Verify DynamoDB:
 ```bash
 AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_DEFAULT_REGION=eu-west-1 \
   aws --endpoint-url=http://localhost:4566 dynamodb scan \
-  --table-name dev-order-to-cash-price
+  --table-name order-to-cash-dev-data_layer-price
 ```
 
 You should see normalized values:
