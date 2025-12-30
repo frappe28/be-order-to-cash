@@ -7,61 +7,53 @@ locals {
 }
 
 remote_state {
-  backend = "s3"
+  backend = "local"
   config = {
-    encrypt        = true
-    bucket         = "${local.stage.env}-${local.global.project}-terragruntstate"
-    key            = "${path_relative_to_include()}/terraform.tfstate"
-    region         = local.global.region
-    dynamodb_table = "${local.stage.env}-${local.global.project}-terragruntstate"
-    s3_bucket_tags = {
-      Project              = "${local.global.tags.project}"
-      "Creation Date"       = "${formatdate("YYYY-MM-DD", timestamp())}"
-      Environment           = "${local.stage.env}"
-    }
-    dynamodb_table_tags = {
-      Project              = "${local.global.tags.project}"
-      "Creation Date"       = "${formatdate("YYYY-MM-DD", timestamp())}"
-      Environment           = "${local.stage.env}"
-    }
+    path = "${get_terragrunt_dir()}/${path_relative_to_include()}.tfstate"
   }
 }
 
 terraform {
-  source = "${path_relative_from_include()}/../../modules//${split("-", path_relative_to_include())[0]}"
+  source = "${get_terragrunt_dir()}/../../../modules//${split("/", path_relative_to_include())[0]}"
 }
 
 generate "provider" {
   path      = "provider.tf"
   if_exists = "overwrite"
   contents  = <<EOF
-  provider "aws" {
-    region = "${local.global.region}"
-    default_tags {
-      tags = {
-        Project              = "${local.global.tags.project}"
-        "Creation Date"       = "${formatdate("YYYY-MM-DD", timestamp())}"
-        Environment           = "${local.stage.env}"
+    provider "aws" {
+      region                      = "${local.global.region}"
+      access_key                  = "test"
+      secret_key                  = "test"
+      skip_credentials_validation = true
+      skip_metadata_api_check     = true
+      skip_requesting_account_id  = true
+      s3_use_path_style           = true
+
+      endpoints {
+        apigateway    = "http://localhost:4566"
+        dynamodb      = "http://localhost:4566"
+        events        = "http://localhost:4566"
+        iam           = "http://localhost:4566"
+        lambda        = "http://localhost:4566"
+        logs          = "http://localhost:4566"
+        sqs           = "http://localhost:4566"
+        s3            = "http://localhost:4566"
+        stepfunctions = "http://localhost:4566"
+      }
+
+      default_tags {
+        tags = {
+          Project         = "${local.global.tags.project}"
+          "Creation Date" = "${formatdate("YYYY-MM-DD", timestamp())}"
+          Environment     = "${local.stage.env}"
+        }
+      }
+
+      ignore_tags {
+        keys = ["Creation Date"]
       }
     }
-    ignore_tags {
-      keys = [ "Creation Date" ]
-    }
-  }
-  provider "aws" {
-    alias = "virginia"
-    region = "us-east-1"
-    default_tags {
-      tags = {
-        Project              = "${local.global.tags.project}"
-        "Creation Date"       = "${formatdate("YYYY-MM-DD", timestamp())}"
-        Environment           = "${local.stage.env}"
-      }
-    }
-    ignore_tags {
-      keys = [ "Creation Date" ]
-    }
-  }
   EOF
 }
 

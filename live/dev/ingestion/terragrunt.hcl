@@ -1,5 +1,5 @@
-include "root" {
-  path = find_in_parent_folders()
+include "dev" {
+  path = find_in_parent_folders("terragrunt.hcl")
 }
 
 locals {
@@ -11,9 +11,18 @@ locals {
 }
 
 inputs = {
-  project     = local.global.project
-  region      = local.global.region
-  env         = local.stage.env
-  account_id  = get_aws_account_id()
+  project    = local.global.project
+  region     = local.global.region
+  env        = local.stage.env
+  account_id = "000000000000"
+}
 
+generate "backend" {
+  path      = "backend.tf"
+  if_exists = "overwrite"
+  contents  = <<EOF
+terraform {
+  backend "local" {}
+}
+EOF
 }
