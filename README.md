@@ -80,6 +80,18 @@ You should see normalized values:
 - `amount` stored as a number
 - `market` derived from the input key
 
+## Read prices via API
+Get the API base URL:
+```bash
+cd live/dev/api-layer
+terragrunt output -raw api_webapp_url_localstack
+```
+
+Fetch a price by id:
+```bash
+curl "$(terragrunt output -raw api_webapp_url_localstack)/prices/p-001"
+```
+
 ## Notes
 - LocalStack must include `apigateway` in `SERVICES`.
 - If you change API resources, re-run `terragrunt apply` to redeploy API Gateway.

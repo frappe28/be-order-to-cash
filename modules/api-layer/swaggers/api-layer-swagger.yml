@@ -8,6 +8,7 @@ servers:
 tags:
   - name: Checkout
   - name: Orders
+  - name: Prices
 
 security:
   - bearerAuth: []
@@ -41,7 +42,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalError"
       x-amazon-apigateway-integration:
-        payloadFormatVersion: "2.0"
         type: "aws_proxy"
         httpMethod: "POST"
         uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${create_checkout_session}/invocations"
@@ -84,7 +84,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalError"
       x-amazon-apigateway-integration:
-        payloadFormatVersion: "2.0"
         type: "aws_proxy"
         httpMethod: "POST"
         uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${set_payment_method}/invocations"
@@ -130,7 +129,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalError"
       x-amazon-apigateway-integration:
-        payloadFormatVersion: "2.0"
         type: "aws_proxy"
         httpMethod: "POST"
         uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${confirm_checkout}/invocations"
@@ -159,10 +157,35 @@ paths:
         "500":
           $ref: "#/components/responses/InternalError"
       x-amazon-apigateway-integration:
-        payloadFormatVersion: "2.0"
         type: "aws_proxy"
         httpMethod: "POST"
         uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${get_order_status}/invocations"
+
+  /prices/{priceId}:
+    get:
+      tags:
+        - Prices
+      summary: Get price by id
+      operationId: getPrice
+      parameters:
+        - $ref: "#/components/parameters/PriceId"
+      responses:
+        "200":
+          description: Price details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PriceResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${get_price}/invocations"
 
 components:
   securitySchemes:
@@ -191,6 +214,16 @@ components:
         minLength: 3
         maxLength: 64
       description: Order identifier
+
+    PriceId:
+      name: priceId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 128
+      description: Price identifier
 
   responses:
     BadRequest:
@@ -363,6 +396,38 @@ components:
             - COMPLETED
             - FAILED
           example: PROCESSING
+
+    PriceResponse:
+      type: object
+      required:
+        - price
+      properties:
+        price:
+          $ref: "#/components/schemas/Price"
+
+    Price:
+      type: object
+      required:
+        - price_id
+      properties:
+        price_id:
+          type: string
+          example: p-001
+        sku:
+          type: string
+          example: BOOK-ABC
+        amount:
+          type: string
+          example: "12.90"
+        currency:
+          type: string
+          example: EUR
+        market:
+          type: string
+          example: EU
+        updated_at:
+          type: string
+          example: "2025-12-30T20:47:36.131757+00:00"
 
     CheckoutItem:
       type: object

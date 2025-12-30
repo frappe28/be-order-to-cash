@@ -1,14 +1,18 @@
-resource "aws_apigatewayv2_api" "http_api" {
-  name          = "${var.project}-${var.env}-api-layer-webapp-api"
-  protocol_type = "HTTP"
-  body = templatefile("${path.module}/swaggers/api-layer-swagger.yml", {
+locals {
+  api_body = templatefile("${path.module}/swaggers/api-layer-swagger.yml", {
     region                  = var.region
     account_id              = var.account_id
-    create_checkout_session = "${var.project}-${var.env}-api-layer-create-checkout-session"
-    set_payment_method      = "${var.project}-${var.env}-api-layer-set-payment-method"
-    confirm_checkout         = "${var.project}-${var.env}-api-layer-confirm-checkout"
-    get_order_status         = "${var.project}-${var.env}-api-layer-get-order-status"
+    create_checkout_session = var.create_checkout_session_name
+    set_payment_method      = var.set_payment_method_name
+    confirm_checkout         = var.confirm_checkout_name
+    get_order_status         = var.get_order_status_name
+    get_price                = var.get_price_name
   })
+}
+
+resource "aws_api_gateway_rest_api" "api" {
+  name = var.webapp_api_name
+  body = local.api_body
 
   tags = {
     Project     = var.project
@@ -16,8 +20,19 @@ resource "aws_apigatewayv2_api" "http_api" {
   }
 }
 
-resource "aws_apigatewayv2_stage" "default" {
-  api_id      = aws_apigatewayv2_api.http_api.id
-  name        = "${var.project}-${var.env}-api-layer"
-  auto_deploy = true
+resource "aws_api_gateway_deployment" "api" {
+  rest_api_id = aws_api_gateway_rest_api.api.id
+  triggers = {
+    redeployment = sha1(local.api_body)
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_api_gateway_stage" "default" {
+  rest_api_id   = aws_api_gateway_rest_api.api.id
+  deployment_id = aws_api_gateway_deployment.api.id
+  stage_name    = var.env
 }
