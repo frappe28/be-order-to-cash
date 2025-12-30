@@ -1,0 +1,65 @@
+data "archive_file" "zuora_webhook" {
+  type        = "zip"
+  source_file = "${path.module}/lambda-src/zuora_webhook.py"
+  output_path = "${path.module}/lambda-src/zuora_webhook.zip"
+}
+
+data "aws_iam_policy_document" "lambda_assume_role_zuora_webhook" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com"]
+    }
+  }
+}
+
+data "aws_iam_policy_document" "lambda_logs_zuora_webhook" {
+  statement {
+    actions = [
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents",
+    ]
+    resources = ["arn:aws:logs:${var.region}:${var.account_id}:*"]
+  }
+}
+
+data "aws_iam_policy_document" "lambda_events_zuora_webhook" {
+  statement {
+    actions   = ["events:PutEvents"]
+    resources = ["arn:aws:events:${var.region}:${var.account_id}:event-bus/default"]
+  }
+}
+
+resource "aws_iam_role" "zuora_webhook" {
+  name               = var.zuora_webhook_name
+  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role_zuora_webhook.json
+}
+
+resource "aws_iam_role_policy" "zuora_webhook_logs" {
+  name   = var.zuora_webhook_name
+  role   = aws_iam_role.zuora_webhook.id
+  policy = data.aws_iam_policy_document.lambda_logs_zuora_webhook.json
+}
+
+resource "aws_iam_role_policy" "zuora_webhook_events" {
+  name   = var.zuora_webhook_name
+  role   = aws_iam_role.zuora_webhook.id
+  policy = data.aws_iam_policy_document.lambda_events_zuora_webhook.json
+}
+
+resource "aws_lambda_function" "zuora_webhook" {
+  function_name    = var.zuora_webhook_name
+  handler          = "zuora_webhook.handler"
+  runtime          = "python3.11"
+  role             = aws_iam_role.zuora_webhook.arn
+  filename         = data.archive_file.zuora_webhook.output_path
+  source_code_hash = data.archive_file.zuora_webhook.output_base64sha256
+
+  environment {
+    variables = {
+      EVENT_BUS_NAME = "default"
+    }
+  }
+}

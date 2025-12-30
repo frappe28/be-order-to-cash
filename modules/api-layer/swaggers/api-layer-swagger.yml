@@ -1,0 +1,499 @@
+openapi: 3.0.3
+info:
+  title: Checkout BFF API (Diagram-only)
+  version: 1.0.2
+servers:
+  - url: https://api.example.com
+
+tags:
+  - name: Checkout
+  - name: Orders
+  - name: Prices
+
+security:
+  - bearerAuth: []
+
+paths:
+  /checkout/sessions:
+    post:
+      tags:
+        - Checkout
+      summary: Create a checkout session
+      operationId: createCheckoutSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCheckoutSessionRequest"
+      responses:
+        "201":
+          description: Session created with snapshot
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateCheckoutSessionResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${create_checkout_session}/invocations"
+
+  /checkout/sessions/{sessionId}/payment-method:
+    post:
+      tags:
+        - Checkout
+      summary: Attach payment method token reference (Nexi)
+      operationId: setPaymentMethod
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema:
+            type: string
+            maxLength: 128
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetPaymentMethodRequest"
+      responses:
+        "200":
+          description: Token reference stored
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SetPaymentMethodResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${set_payment_method}/invocations"
+
+  /checkout/sessions/{sessionId}/confirm:
+    post:
+      tags:
+        - Checkout
+      summary: Confirm checkout (start orchestrator)
+      operationId: confirmCheckout
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+        - name: Idempotency-Key
+          in: header
+          required: true
+          description: Required for safe retries of confirm
+          schema:
+            type: string
+            maxLength: 128
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConfirmCheckoutRequest"
+      responses:
+        "202":
+          description: Confirmation accepted and processing started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConfirmCheckoutResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${confirm_checkout}/invocations"
+
+  /orders/{orderId}/status:
+    get:
+      tags:
+        - Orders
+      summary: Get order status (polling)
+      operationId: getOrderStatus
+      parameters:
+        - $ref: "#/components/parameters/OrderId"
+      responses:
+        "200":
+          description: Current order status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderStatusResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${get_order_status}/invocations"
+
+  /prices/{priceId}:
+    get:
+      tags:
+        - Prices
+      summary: Get price by id
+      operationId: getPrice
+      parameters:
+        - $ref: "#/components/parameters/PriceId"
+      responses:
+        "200":
+          description: Price details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PriceResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${get_price}/invocations"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    SessionId:
+      name: sessionId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 64
+      description: Checkout session identifier
+
+    OrderId:
+      name: orderId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 3
+        maxLength: 64
+      description: Order identifier
+
+    PriceId:
+      name: priceId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 128
+      description: Price identifier
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            badRequest:
+              value:
+                code: BAD_REQUEST
+                message: Invalid payload
+                correlationId: 0f3c2d2b2a
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            unauthorized:
+              value:
+                code: UNAUTHORIZED
+                message: Missing or invalid token
+                correlationId: 0f3c2d2b2a
+
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            notFound:
+              value:
+                code: NOT_FOUND
+                message: Resource not found
+                correlationId: 0f3c2d2b2a
+
+    Conflict:
+      description: Conflict (e.g., invalid state transition or idempotency conflict)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            conflict:
+              value:
+                code: CONFLICT
+                message: Session already confirmed or invalid state
+                correlationId: 0f3c2d2b2a
+
+    TooManyRequests:
+      description: Rate limited
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            ratelimit:
+              value:
+                code: TOO_MANY_REQUESTS
+                message: Rate limit exceeded
+                correlationId: 0f3c2d2b2a
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            internal:
+              value:
+                code: INTERNAL_ERROR
+                message: Unexpected error
+                correlationId: 0f3c2d2b2a
+
+  schemas:
+    CreateCheckoutSessionRequest:
+      type: object
+      required:
+        - items
+        - context
+      properties:
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/CheckoutItem"
+        context:
+          type: object
+          additionalProperties: true
+          description: Arbitrary checkout context (channel, locale, country, campaign, etc.)
+      example:
+        items:
+          - sku: BOOK-123
+            quantity: 1
+        context:
+          channel: web
+          locale: it-IT
+          country: IT
+
+    CreateCheckoutSessionResponse:
+      type: object
+      required:
+        - checkoutSessionId
+        - snapshot
+      properties:
+        checkoutSessionId:
+          type: string
+          example: chk_01HZX8GQ9K2Y4N
+        snapshot:
+          $ref: "#/components/schemas/CheckoutSnapshot"
+
+    SetPaymentMethodRequest:
+      type: object
+      required:
+        - paymentToken
+      properties:
+        paymentToken:
+          type: string
+          description: Token returned by Nexi tokenization
+          example: tok_nexi_9f1c2a
+
+    SetPaymentMethodResponse:
+      type: object
+      required:
+        - ok
+      properties:
+        ok:
+          type: boolean
+          example: true
+
+    ConfirmCheckoutRequest:
+      type: object
+      additionalProperties: true
+      description: Optional metadata for trace/analytics
+
+    ConfirmCheckoutResponse:
+      type: object
+      required:
+        - orderId
+        - status
+      properties:
+        orderId:
+          type: string
+          example: ord_1000456
+        status:
+          type: string
+          enum:
+            - PROCESSING
+          example: PROCESSING
+
+    OrderStatusResponse:
+      type: object
+      required:
+        - orderId
+        - status
+      properties:
+        orderId:
+          type: string
+          example: ord_1000456
+        status:
+          type: string
+          enum:
+            - PROCESSING
+            - COMPLETED
+            - FAILED
+          example: PROCESSING
+
+    PriceResponse:
+      type: object
+      required:
+        - price
+      properties:
+        price:
+          $ref: "#/components/schemas/Price"
+
+    Price:
+      type: object
+      required:
+        - price_id
+      properties:
+        price_id:
+          type: string
+          example: p-001
+        sku:
+          type: string
+          example: BOOK-ABC
+        amount:
+          type: string
+          example: "12.90"
+        currency:
+          type: string
+          example: EUR
+        market:
+          type: string
+          example: EU
+        updated_at:
+          type: string
+          example: "2025-12-30T20:47:36.131757+00:00"
+
+    CheckoutItem:
+      type: object
+      required:
+        - sku
+        - quantity
+      properties:
+        sku:
+          type: string
+          example: BOOK-123
+        quantity:
+          type: integer
+          minimum: 1
+          example: 1
+
+    CheckoutSnapshot:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            required:
+              - sku
+              - quantity
+            properties:
+              sku:
+                type: string
+              quantity:
+                type: integer
+              title:
+                type: string
+                nullable: true
+        totals:
+          type: object
+          nullable: true
+          properties:
+            grandTotal:
+              type: object
+              properties:
+                amount:
+                  type: number
+                  format: double
+                  example: 19.99
+                currency:
+                  type: string
+                  example: EUR
+
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+        - correlationId
+      properties:
+        code:
+          type: string
+          example: BAD_REQUEST
+        message:
+          type: string
+          example: Invalid request
+        correlationId:
+          type: string
+          example: 0f3c2d2b2a
+        details:
+          type: object
+          additionalProperties: true
