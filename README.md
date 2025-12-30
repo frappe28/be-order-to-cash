@@ -4,8 +4,7 @@ POC backend to ingest price updates from a Zuora-style webhook, validate and nor
 
 ## What it does
 - REST API endpoint: POST `/webhooks/zuora`
-- Lambda `zuora_webhook` publishes the raw payload to EventBridge
-- Lambda `zuora_validate_price` validates required fields
+- Lambda `zuora_webhook` validates the JSON and publishes the validated payload to EventBridge
 - Lambda `zuora_normalize_price` normalizes and writes to DynamoDB
 
 Normalized fields stored in DynamoDB:

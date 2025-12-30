@@ -6,8 +6,9 @@ from datetime import datetime, timezone
 import boto3
 
 EVENT_BUS_NAME = os.environ.get("EVENT_BUS_NAME") or "default"
-EVENT_SOURCE = "zuora.webhook"
-EVENT_DETAIL_TYPE = "ZuoraPriceWebhookReceived"
+EVENT_SOURCE = "zuora.validation"
+EVENT_DETAIL_TYPE = "ZuoraPriceValidated"
+REQUIRED_FIELDS = ["price_id", "sku", "amount", "currency"]
 
 
 def _response(status_code, body):
@@ -30,6 +31,13 @@ def handler(event, context):
         payload = json.loads(body) if body else {}
     except json.JSONDecodeError:
         return _response(400, {"message": "Invalid JSON"})
+
+    missing = []
+    for field in REQUIRED_FIELDS:
+        if field not in payload or payload.get(field) in (None, ""):
+            missing.append(field)
+    if missing:
+        return _response(400, {"message": f"Missing required fields: {','.join(missing)}"})
 
     detail = {
         "payload": payload,

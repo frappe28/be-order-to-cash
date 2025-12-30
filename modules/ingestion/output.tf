@@ -6,10 +6,6 @@ output "ingestion_event_bus_arn" {
   value = "arn:aws:events:${var.region}:${var.account_id}:event-bus/default"
 }
 
-output "ingestion_dlq_url" {
-  value = aws_sqs_queue.ingestion_dlq.url
-}
-
 output "ingestion_webhook_url" {
   value = "${aws_api_gateway_stage.ingestion_default.invoke_url}/webhooks/zuora"
 }

@@ -18,11 +18,6 @@ variable "account_id" {
   description = "Account ID"
 }
 
-variable "validate_zuora_price_name" {
-  type        = string
-  description = "Name for validating Zuora price data."
-}
-
 variable "zuora_webhook_name" {
   type        = string
   description = "Name for Zuora webhook."
@@ -31,14 +26,4 @@ variable "zuora_webhook_name" {
 variable "ingestion_rest_api_name" {
   type        = string
   description = "Name for the ingestion REST API."
-}
-
-variable "ingestion_dlq_name" {
-  type        = string
-  description = "Name for the ingestion dead-letter queue."
-}
-
-variable "zuora_webhook_event_rule_name" {
-  type        = string
-  description = "Name for the Zuora webhook EventBridge rule."
 }
