@@ -2,16 +2,13 @@ import json
 import os
 import boto3
 
-EVENT_BUS_NAME = os.environ.get("EVENT_BUS_NAME")
+EVENT_BUS_NAME = os.environ.get("EVENT_BUS_NAME") or "default"
 EVENT_SOURCE = "zuora.validation"
 EVENT_DETAIL_TYPE = "ZuoraPriceValidated"
 REQUIRED_FIELDS = ["price_id", "sku", "amount", "currency"]
 
 
 def handler(event, context):
-    if not EVENT_BUS_NAME:
-        raise RuntimeError("EVENT_BUS_NAME not configured")
-
     detail = event.get("detail") or {}
     payload = detail.get("payload") if isinstance(detail, dict) else None
     if not isinstance(payload, dict):

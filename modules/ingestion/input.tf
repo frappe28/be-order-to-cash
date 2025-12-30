@@ -17,8 +17,3 @@ variable "account_id" {
   type        = string
   description = "Account ID"
 }
-
-variable "price_table_name" {
-  type        = string
-  description = "DynamoDB Price Table Name"
-}

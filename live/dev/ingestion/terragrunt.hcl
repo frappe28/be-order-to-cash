@@ -25,6 +25,4 @@ inputs = {
   region     = local.global.region
   env        = local.stage.env
   account_id = "000000000000"
-
-  price_table_name = "price"
 }

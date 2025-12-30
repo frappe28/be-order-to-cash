@@ -54,14 +54,14 @@ resource "aws_iam_role_policy" "normalize_zuora_price_dynamodb" {
 resource "aws_lambda_function" "normalize_zuora_price" {
   function_name    = local.normalize_lambda_name
   handler          = "normalize_zuora_price.handler"
-  runtime          = "python3.12"
+  runtime          = "python3.11"
   role             = aws_iam_role.normalize_zuora_price.arn
   filename         = data.archive_file.normalize_zuora_price.output_path
   source_code_hash = data.archive_file.normalize_zuora_price.output_base64sha256
 
   environment {
     variables = {
-      TABLE_NAME = aws_dynamodb_table.pricing.name
+      DYNAMO_TABLE_NAME = aws_dynamodb_table.pricing.name
     }
   }
 }

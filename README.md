@@ -32,6 +32,12 @@ cd live/dev/ingestion
 terragrunt apply
 ```
 
+Apply the data-layer module (DynamoDB + normalization Lambda):
+```bash
+cd live/dev/data-layer
+terragrunt apply
+```
+
 Get the local webhook endpoint:
 ```bash
 terragrunt output -raw ingestion_webhook_url_localstack

@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-EVENT_BUS_NAME = os.environ.get("EVENT_BUS_NAME")
+EVENT_BUS_NAME = os.environ.get("EVENT_BUS_NAME") or "default"
 EVENT_SOURCE = "zuora.webhook"
 EVENT_DETAIL_TYPE = "ZuoraPriceWebhookReceived"
 
@@ -19,9 +19,6 @@ def _response(status_code, body):
 
 
 def handler(event, context):
-    if not EVENT_BUS_NAME:
-        return _response(500, {"message": "EVENT_BUS_NAME not configured"})
-
     body = event.get("body") or ""
     if event.get("isBase64Encoded"):
         try:

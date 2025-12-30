@@ -18,8 +18,8 @@ variable "account_id" {
   description = "Account ID"
 }
 
-variable "ingestion_event_bus_name" {
+variable "price_table_name" {
   type        = string
-  description = "EventBridge bus name for ingestion events."
-  default     = ""
+  description = "DynamoDB price table name suffix."
+  default     = "price"
 }

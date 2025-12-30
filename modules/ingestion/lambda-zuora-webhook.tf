@@ -28,7 +28,7 @@ data "aws_iam_policy_document" "lambda_logs_zuora_webhook" {
 data "aws_iam_policy_document" "lambda_events_zuora_webhook" {
   statement {
     actions   = ["events:PutEvents"]
-    resources = [aws_cloudwatch_event_bus.ingestion.arn]
+    resources = ["arn:aws:events:${var.region}:${var.account_id}:event-bus/default"]
   }
 }
 
@@ -59,7 +59,7 @@ resource "aws_lambda_function" "zuora_webhook" {
 
   environment {
     variables = {
-      EVENT_BUS_NAME = aws_cloudwatch_event_bus.ingestion.name
+      EVENT_BUS_NAME = "default"
     }
   }
 }

@@ -1,9 +1,9 @@
 output "ingestion_event_bus_name" {
-  value = aws_cloudwatch_event_bus.ingestion.name
+  value = "default"
 }
 
 output "ingestion_event_bus_arn" {
-  value = aws_cloudwatch_event_bus.ingestion.arn
+  value = "arn:aws:events:${var.region}:${var.account_id}:event-bus/default"
 }
 
 output "ingestion_dlq_url" {
