@@ -39,6 +39,7 @@ terragrunt apply
 
 Get the local webhook endpoint:
 ```bash
+cd live/dev/ingestion
 terragrunt output -raw ingestion_webhook_url_localstack
 ```
 
